@@ -1,0 +1,167 @@
+{% extends "feed/layout.html" %}
+{% load static %}
+{% block searchform %}
+
+{# --------------------------Search Form------------------------------- #}
+<form class="form-inline my-lg-0" action="{% url 'search_users' %}" method="get" enctype="multipart/form-data">
+    <div class="relative text-gray-600 focus-within:text-gray-400">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-2">
+            <button type="submit" class="p-1 focus:outline-none focus:shadow-outline">
+                <svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    viewBox="0 0 24 24" class="w-6 h-6">
+                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </button>
+        </span>
+        <input type="search" name="q"
+            class="py-2 text-sm text-gray-900 border-transparent bg-slate-100 sm:w-auto lg:w-auto rounded-xl pl-10"
+            placeholder="Search..." autocomplete="off">
+    </div>
+</form>
+{# ---------------end-----------Search Form------------------------------- #}
+{% endblock searchform %}
+
+{% block extra_styles %}
+<style>
+    .content-container1 {
+        margin: 0 100px;
+    }
+
+    @media (max-width: 500px) {
+        .content-container1 {
+            margin: 0 20px;
+        }
+    }
+</style>
+{% endblock extra_styles %}
+
+{% block content %}
+<br /><br />
+
+<div class="flex flex-col items-center justify-center main-content">
+    <div class="container mt-0">
+        <div class="max-w-full w-full bg-white dark:bg-card rounded-xl shadow-md overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex gap-2 items-center">
+                        <img src="{{ u.profile.image.url }}" alt="profile picture" class="w-16 h-16 rounded-full"
+                            width="60px" height="60px" />
+                        <div>
+                            <h2 class="text-xl font-semibold text-foreground">{{ u.first_name }} {{ u.last_name }}</h2>
+                            <p class="text-muted-foreground">@{{ u.username }}</p>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'edit_profile' %}"
+                        class="ml-auto border-solid cursor-pointer border-2 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/80">
+                        Edit profile
+                    </a>
+                </div>
+                <div class="mt-4">
+                    <p class="text-muted-foreground">Business name: {{ u.profile.business }}</p>
+                    <div class="flex items-center space-x-2 mt-2">
+                        <span class="text-muted-foreground">📍</span>&nbsp
+                        <p class="text-foreground">Address: {{ u.profile.city }}, {{ u.profile.state }}, {{ u.profile.get_country_display }}</p>
+                    </div>
+                    <div class="flex items-center space-x-2 mt-2">
+                        <span class="text-muted-foreground">📅</span>&nbsp
+                        <p class="text-foreground">Joined May 2020</p>
+                    </div>
+                    <div class="flex items-center space-x-2 mt-2">
+                        <span class="text-muted-foreground">✉️</span>&nbsp
+                        <p class="text-foreground">Email: {{ u.email }}</p>
+                    </div>
+                    <!-- <div class="flex items-center space-x-2 mt-2">
+                        <span class="text-muted-foreground">🔗</span>&nbsp
+                        <a href="#" class="text-blue-700">https://wdjenish.web.app/</a>
+                    </div> -->
+                </div>
+                <div class="mt-4">
+                    <h3 class="text-lg font-semibold text-foreground">About us</h3>
+                    <p class="text-muted-foreground mt-2">{{ u.profile.bio }}</p>
+                </div>
+                <div class="flex items-center space-x-4 mt-4">
+                    <p class="text-foreground">
+                        <span class="font-semibold">{{ u.profile.friends.count }}</span>
+                        {% if request.user == u %}
+                        <a href="{% url 'friend_list' %}">Clients</a>
+                        {% else %}
+                        <span class="description">Clients</span>
+                        {% endif %}
+                    </p>
+                    <p class="text-foreground">
+                        <span class="font-semibold">{{ post_count }}</span>
+                        <a href="{% url 'user-posts' u.username %}">Posts</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="main-content flex flex-col items-center justify-center">
+    <div class="container mt-0">
+        <br />
+
+        {% if request.user == u %}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card card-signin my-5">
+                    <div class="card-body">
+                        <h2>Client Invitation Sent ({{ sent_friend_requests.count }})</h2>
+                        <hr class="my-2" />
+                        {% if not sent_friend_requests %}
+                        <h5><i>No Client Invitation Sent!</i></h5>
+                        {% else %}
+                        {% for s_request in sent_friend_requests %}
+                        <a href="{{ s_request.to_user.profile.get_absolute_url }}">
+                            <img src="{{ s_request.to_user.profile.image.url }}" class="rounded mr-2" width="40"
+                                height="40" alt="" />
+                        </a>
+                        <a href="{{ s_request.to_user.profile.get_absolute_url }}">
+                            <b>{{ s_request.to_user.username }}</b>
+                        </a>
+                        <small class="float-right">
+                            <a class="btn btn-warning mr-2"
+                                href="{% url 'cancel_friend_request' s_request.to_user.id %}">Abandon</a>
+                        </small>
+                        <br /><br />
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card card-signin my-5">
+                    <div class="card-body">
+                        <h2>Client Invitation Obtained ({{ rec_friend_requests.count }})</h2>
+                        <hr class="my-2" />
+                        {% if not rec_friend_requests %}
+                        <h5><i>No Client Invitation Obtained!</i></h5>
+                        {% else %}
+                        {% for r_request in rec_friend_requests %}
+                        <a href="{{ r_request.from_user.profile.get_absolute_url }}">
+                            <img src="{{ r_request.from_user.profile.image.url }}" class="rounded mr-2" width="40"
+                                height="40" alt="" />
+                        </a>
+                        <a class="mr-2 align-middle" href="{{ r_request.from_user.profile.get_absolute_url }}">
+                            <b>{{ r_request.from_user.username }}</b>
+                        </a>
+                        <small class="float-right">
+                            <a class="btn btn-success mr-2"
+                                href="/users/friend-request/accept/{{ r_request.from_user.id }}">Confirm</a>
+                            <a class="btn btn-danger"
+                                href="/users/friend-request/delete/{{ r_request.from_user.id }}">Decline</a>
+                        </small>
+                        <br /><br />
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock content %}
